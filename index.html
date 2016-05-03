@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Neverwinter Companion Bonding</title>
+<style>
+a {text-decoration: none;}
+a:hover {text-decoration: underline;}
+div.column {float: left; padding-right: 5px;}
+input {text-align: right; width: 40px;}
+table.clear {clear: both;}
+td {border: thin dotted black; white-space: nowrap;}
+td.number {text-align: right;}
+td.Epic {border: medium ridge #7a38ff;}
+td.Rare {border: medium ridge #3391e9;}
+td.Uncommon {border: medium ridge #84dc26;}
+td.Common {border: medium ridge #ffffff;}
+</style>
+</head>
+<body>
+<div class="column">
+<div><input type="text" id="Augment" onchange="update()">Augment</div>
+<div><input type="text" id="Controller" onchange="update()">Controller</div>
+<div><input type="text" id="Defender" onchange="update()">Defender</div>
+<div><input type="text" id="Leader" onchange="update()">Leader</div>
+<div><input type="text" id="Striker" onchange="update()">Striker</div>
+</div>
+<div class="column">
+<div><input type="text" id="Common" onchange="update()">Common</div>
+<div><input type="text" id="Uncommon" onchange="update()">Uncommon</div>
+<div><input type="text" id="Rare" onchange="update()">Rare</div>
+<div><input type="text" id="Epic" onchange="update()">Epic</div>
+</div>
+<div class="column">
+<div><input type="text" id="Defense" onchange="update()">Defense</div>
+<div><input type="text" id="Offense" onchange="update()">Offense</div>
+</div>
+<div class="column">
+<div><input type="text" id="Neck" onchange="update()">Neck</div>
+<div><input type="text" id="Ring" onchange="update()">Ring</div>
+<div><input type="text" id="Waist" onchange="update()">Waist</div>
+<div><input type="text" id="Grimoire" onchange="update()">Grimoire</div>
+<div><input type="text" id="Icon" onchange="update()">Icon</div>
+<div><input type="text" id="Sword_Knot" onchange="update()">Sword Knot</div>
+<div><input type="text" id="Talisman" onchange="update()">Talisman</div>
+</div>
+Sort: <select id="select" onchange="update()">
+  <option value="score,speed">Score, Estimated Speed</option>
+  <option value="speed,score">Estimated Speed, Score</option>
+</select>
+<table id="table">
+<tr>
+<th>Score</th>
+<th>Estimated<br>Speed</th>
+<th>Name</th>
+<th>Role</th>
+<th>Rune1</th>
+<th>Rune2</th>
+<th>Rune3</th>
+<th>Equip1</th>
+<th>Equip2</th>
+<th>Equip3</th>
+<th>Cooldowns</th>
+</tr>
+</table>
+<script>
+var weights = {
+    "Augment": 0,
+    "Controller": 0,
+    "Defender": 0,
+    "Leader": 0,
+    "Striker": 0,
+    "Common": 0,
+    "Uncommon": 0,
+    "Rare": 0,
+    "Epic": 0,
+    "Defense": 0,
+    "Offense": 1,
+    "Neck": 3,
+    "Ring": 3,
+    "Waist": 3,
+    "Grimoire": 0,
+    "Icon": 3,
+    "Sword Knot": 3,
+    "Talisman": 3
+};
+
+var companions = [
+    {fullName: "Aarakocra", quality: "Uncommon", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Defense", equip1: "Ring", equip2: "Waist", equip3: "Neck", cooldowns: "FIXME"},
+    {fullName: "Acolyte of Kelemvor", quality: "Rare", role: "Leader", rune1: "Offense", rune2: "Offense", rune3: "Defense", equip1: "Icon", equip2: "Ring", equip3: "Ring", cooldowns: "4 7"},
+    {fullName: "Air Archon", quality: "Epic", role: "Defender", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Ring", equip2: "Ring", equip3: "Neck", cooldowns: "15 1"},
+    {fullName: "Alchemist Experimenter", quality: "Epic", role: "Leader", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Neck", equip2: "Waist", equip3: "Neck", cooldowns: "2 6"},
+    {fullName: "Ambush Drake", quality: "Epic", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Defense", equip1: "Neck", equip2: "Neck", equip3: "Neck", cooldowns: "1.5 8"},
+    {fullName: "Angel of Protection", quality: "Epic", role: "Leader", rune1: "Defense", rune2: "Defense", rune3: "Offense", equip1: "Icon", equip2: "Neck", equip3: "Ring", cooldowns: "2.5"},
+    {fullName: "Apprentice Healer", quality: "Common", role: "Leader", rune1: "Defense", rune2: "Defense", rune3: "Defense", equip1: "Neck", equip2: "Ring", equip3: "Ring", cooldowns: "25 8"},
+    {fullName: "Aranea", quality: "Epic", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Neck", equip2: "Waist", equip3: "Ring", cooldowns: "3 15 8"},
+    {fullName: "Archmage's Apprentice", quality: "Uncommon", role: "Controller", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Talisman", equip2: "Ring", equip3: "Talisman", cooldowns: "1 12"},
+    {fullName: "Armored Orc Wolf", quality: "Uncommon", role: "Striker", rune1: "Offense", rune2: "Defense", rune3: "Defense", equip1: "Neck", equip2: "Ring", equip3: "Waist", cooldowns: "2 20"},
+    {fullName: "Assassin Drake", quality: "Epic", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Defense", equip1: "Neck", equip2: "Waist", equip3: "Neck", cooldowns: "5 2"},
+    {fullName: "Astral Deva", quality: "Rare", role: "Striker", rune1: "Defense", rune2: "Offense", rune3: "Offense", equip1: "Waist", equip2: "Neck", equip3: "Icon", cooldowns: "1 30"},
+    {fullName: "Barbarian Shaman", quality: "Rare", role: "Leader", rune1: "Defense", rune2: "Defense", rune3: "Offense", equip1: "Icon", equip2: "Ring", equip3: "Neck", cooldowns: "12 3"},
+    {fullName: "Battlefield Medic", quality: "Epic", role: "Leader", rune1: "Defense", rune2: "Defense", rune3: "Offense", equip1: "Waist", equip2: "Neck", equip3: "Waist", cooldowns: "30 12"},
+    {fullName: "Bear Cub", quality: "Uncommon", role: "Augment", rune1: "Offense", rune2: "Offense", rune3: "Defense", equip1: "Sword Knot", equip2: "Waist", equip3: "Neck", cooldowns: ""},
+    {fullName: "Black Death Scorpion", quality: "Epic", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Neck", equip2: "Ring", equip3: "Ring", cooldowns: "3 10"},
+    {fullName: "Black Dragon Ioun Stone", quality: "Epic", role: "Augment", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Ring", equip2: "Ring", equip3: "Ring", cooldowns: ""},
+    {fullName: "Black Ice Ioun Stone", quality: "Epic", role: "Augment", rune1: "Offense", rune2: "Offense", rune3: "Defense", equip1: "Ring", equip2: "Ring", equip3: "Neck", cooldowns: ""},
+    {fullName: "Blackice Prospector", quality: "Epic", role: "Striker", rune1: "Offense", rune2: "Defense", rune3: "Offense", equip1: "Neck", equip2: "Waist", equip3: "Waist", cooldowns: "0 15"},
+    {fullName: "Blacksmith", quality: "Rare", role: "Striker", rune1: "Offense", rune2: "Defense", rune3: "Offense", equip1: "Waist", equip2: "Waist", equip3: "Ring", cooldowns: "1 3"},
+    {fullName: "Blink Dog", quality: "Uncommon", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Defense", equip1: "Neck", equip2: "Neck", equip3: "Ring", cooldowns: "1.2 6"},
+    {fullName: "Boar", quality: "Uncommon", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Neck", equip2: "Waist", equip3: "Neck", cooldowns: "1 10"},
+    {fullName: "Book Imp", quality: "Epic", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Neck", equip2: "Talisman", equip3: "Ring", cooldowns: "5 1"},
+    {fullName: "Bulette Pup", quality: "Epic", role: "Augment", rune1: "Defense", rune2: "Defense", rune3: "Defense", equip1: "Neck", equip2: "Waist", equip3: "Waist", cooldowns: ""},
+    {fullName: "Cambion Magus", quality: "Rare", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Defense", equip1: "Neck", equip2: "Talisman", equip3: "Ring", cooldowns: "8 2"},
+    {fullName: "Cantankerous Mage", quality: "Rare", role: "Controller", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Talisman", equip2: "Neck", equip3: "Talisman", cooldowns: "15 1.5"},
+    {fullName: "Cat", quality: "Rare", role: "Augment", rune1: "Offense", rune2: "Offense", rune3: "Defense", equip1: "Neck", equip2: "Waist", equip3: "Ring", cooldowns: ""},
+    {fullName: "Cave Bear", quality: "Uncommon", role: "Defender", rune1: "Defense", rune2: "Defense", rune3: "Defense", equip1: "Waist", equip2: "Neck", equip3: "Neck", cooldowns: "1.5 5"},
+    {fullName: "Celeste", quality: "Epic", role: "Leader", rune1: "Defense", rune2: "Defense", rune3: "Defense", equip1: "Icon", equip2: "Ring", equip3: "Icon", cooldowns: "10 6"},
+    {fullName: "Celestial Lion", quality: "Epic", role: "Defender", rune1: "Defense", rune2: "Defense", rune3: "Offense", equip1: "Neck", equip2: "Neck", equip3: "Neck", cooldowns: "FIXME"},
+    {fullName: "Chicken", quality: "Epic", role: "Augment", rune1: "Defense", rune2: "Defense", rune3: "Offense", equip1: "Ring", equip2: "Neck", equip3: "Ring", cooldowns: ""},
+    {fullName: "Cleric Disciple", quality: "Common", role: "Leader", rune1: "Defense", rune2: "Defense", rune3: "Defense", equip1: "Icon", equip2: "Neck", equip3: "Ring", cooldowns: "30 6"},
+    {fullName: "Cockatrice", quality: "Epic", role: "Controller", rune1: "Defense", rune2: "Offense", rune3: "Offense", equip1: "Neck", equip2: "Ring", equip3: "Ring", cooldowns: "6 2"},
+    {fullName: "Cold Iron Warrior", quality: "Uncommon", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Neck", equip2: "Ring", equip3: "Sword Knot", cooldowns: "3 15"},
+    {fullName: "Con Artist", quality: "Common", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Defense", equip1: "Ring", equip2: "Ring", equip3: "Ring", cooldowns: "2"},
+    {fullName: "Crab", quality: "Epic", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Defense", equip1: "Ring", equip2: "Ring", equip3: "Waist", cooldowns: "2 9"},
+    {fullName: "Cultist of Air", quality: "Uncommon", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Icon", equip2: "Neck", equip3: "Ring", cooldowns: "18 1"},
+    {fullName: "Damaran Shepherd", quality: "Common", role: "Striker", rune1: "Offense", rune2: "Defense", rune3: "Defense", equip1: "Neck", equip2: "Neck", equip3: "Waist", cooldowns: "2 9"},
+    {fullName: "Dancing Blade", quality: "Rare", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Sword Knot", equip2: "Sword Knot", equip3: "Sword Knot", cooldowns: "8 1"},
+    {fullName: "Dancing Bow", quality: "Epic", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Neck", equip2: "Ring", equip3: "Ring", cooldowns: "FIXME"},
+    {fullName: "Dancing Shield", quality: "Rare", role: "Defender", rune1: "Defense", rune2: "Defense", rune3: "Defense", equip1: "Waist", equip2: "Waist", equip3: "Waist", cooldowns: "3.5 8"},
+    {fullName: "Death Slaad", quality: "Uncommon", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Sword Knot", equip2: "Neck", equip3: "Waist", cooldowns: "20 1"},
+    {fullName: "Dedicated Squire", quality: "Rare", role: "Leader", rune1: "Defense", rune2: "Defense", rune3: "Offense", equip1: "Neck", equip2: "Waist", equip3: "Ring", cooldowns: "14 5"},
+    {fullName: "Dog", quality: "Common", role: "Striker", rune1: "Offense", rune2: "Defense", rune3: "Defense", equip1: "Neck", equip2: "Neck", equip3: "Ring", cooldowns: "2 9"},
+    {fullName: "Dragonborn Brawler", quality: "Rare", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Neck", equip2: "Waist", equip3: "Sword Knot", cooldowns: "8 3"},
+    {fullName: "Dragonborn Raider", quality: "Uncommon", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Neck", equip2: "Waist", equip3: "Ring", cooldowns: "8 1.2"},
+    {fullName: "Dread Warrior", quality: "Rare", role: "Leader", rune1: "Offense", rune2: "Defense", rune3: "Offense", equip1: "Neck", equip2: "Waist", equip3: "Sword Knot", cooldowns: "8 1.5"},
+    {fullName: "Duergar Guard", quality: "Uncommon", role: "Striker", rune1: "Offense", rune2: "Defense", rune3: "Offense", equip1: "Neck", equip2: "Waist", equip3: "Waist", cooldowns: "0 2"},
+    {fullName: "Duergar Theurge", quality: "Epic", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Ring", equip2: "Neck", equip3: "Ring", cooldowns: "8 2"},
+    {fullName: "Dwarven Battlerager", quality: "Uncommon", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Defense", equip1: "Ring", equip2: "Ring", equip3: "Ring", cooldowns: "2 8"},
+    {fullName: "Earth Archon", quality: "Epic", role: "Defender", rune1: "Defense", rune2: "Defense", rune3: "Defense", equip1: "Neck", equip2: "Ring", equip3: "Waist", cooldowns: "3 11"},
+    {fullName: "Erinyes of Belial", quality: "Rare", role: "Leader", rune1: "Defense", rune2: "Offense", rune3: "Offense", equip1: "Neck", equip2: "Sword Knot", equip3: "Waist", cooldowns: "15 1.2"},
+    {fullName: "Faithful Initiate", quality: "Uncommon", role: "Leader", rune1: "Defense", rune2: "Defense", rune3: "Defense", equip1: "Icon", equip2: "Neck", equip3: "Ring", cooldowns: "30 6"},
+    {fullName: "Fawn of Shiallia", quality: "Uncommon", role: "Leader", rune1: "Defense", rune2: "Defense", rune3: "Defense", equip1: "Neck", equip2: "Ring", equip3: "Ring", cooldowns: "10 35"},
+    {fullName: "Fey Panther", quality: "Rare", role: "Controller", rune1: "Offense", rune2: "Offense", rune3: "Defense", equip1: "Ring", equip2: "Neck", equip3: "Talisman", cooldowns: "2 10"},
+    {fullName: "Fire Archon", quality: "Epic", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Ring", equip2: "Talisman", equip3: "Ring", cooldowns: "2 6"},
+    {fullName: "Fire Scorpion", quality: "Rare", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Neck", equip2: "Ring", equip3: "Ring", cooldowns: "FIXME"},
+    {fullName: "Flame Sprite", quality: "Uncommon", role: "Striker", rune1: "Offense", rune2: "Defense", rune3: "Offense", equip1: "Ring", equip2: "Icon", equip3: "Neck", cooldowns: "4 1.5"},
+    {fullName: "Frost Mimic", quality: "Uncommon", role: "Defender", rune1: "Defense", rune2: "Defense", rune3: "Offense", equip1: "Ring", equip2: "Ring", equip3: "Neck", cooldowns: "2 10"},
+    {fullName: "Galeb Duhr", quality: "Epic", role: "Defender", rune1: "Defense", rune2: "Defense", rune3: "Defense", equip1: "Waist", equip2: "Ring", equip3: "Waist", cooldowns: "120 3"},
+    {fullName: "Gelatinous Cube", quality: "Rare", role: "Augment", rune1: "Defense", rune2: "Offense", rune3: "Defense", equip1: "Waist", equip2: "Waist", equip3: "Waist", cooldowns: ""},
+    {fullName: "Ghost", quality: "Rare", role: "Controller", rune1: "Offense", rune2: "Defense", rune3: "Defense", equip1: "Ring", equip2: "Ring", equip3: "Neck", cooldowns: "35 2"},
+    {fullName: "Goat", quality: "Epic", role: "Augment", rune1: "Defense", rune2: "Defense", rune3: "Offense", equip1: "Ring", equip2: "Neck", equip3: "Waist", cooldowns: ""},
+    {fullName: "Grazilaxx", quality: "Rare", role: "Controller", rune1: "Offense", rune2: "Defense", rune3: "Offense", equip1: "Ring", equip2: "Neck", equip3: "Grimoire", cooldowns: "3 6"},
+    {fullName: "Greenscale Bowman", quality: "Rare", role: "Striker", rune1: "Defense", rune2: "Offense", rune3: "Offense", equip1: "Waist", equip2: "Waist", equip3: "Neck", cooldowns: "8 1.2"},
+    {fullName: "Green Slime", quality: "Uncommon", role: "Controller", rune1: "Defense", rune2: "Offense", rune3: "Offense", equip1: "Ring", equip2: "Waist", equip3: "Neck", cooldowns: "0 2"},
+    {fullName: "Grizzly Bear", quality: "Epic", role: "Defender", rune1: "Defense", rune2: "Defense", rune3: "Defense", equip1: "Neck", equip2: "Waist", equip3: "Waist", cooldowns: "FIXME"},
+    {fullName: "Harper Bard", quality: "Rare", role: "Leader", rune1: "Offense", rune2: "Defense", rune3: "Defense", equip1: "Waist", equip2: "Ring", equip3: "Neck", cooldowns: "6 8"},
+    {fullName: "Hawk", quality: "Uncommon", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Neck", equip2: "Ring", equip3: "Neck", cooldowns: "5 3"},
+    {fullName: "Helmite Paladin Ghost", quality: "Uncommon", role: "Defender", rune1: "Offense", rune2: "Offense", rune3: "Defense", equip1: "Waist", equip2: "Ring", equip3: "Ring", cooldowns: "8 3"},
+    {fullName: "Honey Badger", quality: "Epic", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Ring", equip2: "Neck", equip3: "Talisman", cooldowns: "3 10"},
+    {fullName: "Hunting Drake", quality: "Epic", role: "Controller", rune1: "Offense", rune2: "Offense", rune3: "Defense", equip1: "Neck", equip2: "Waist", equip3: "Neck", cooldowns: "8 1"},
+    {fullName: "Hunting Hawk", quality: "Rare", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Defense", equip1: "Neck", equip2: "Ring", equip3: "Neck", cooldowns: "5 1.5"},
+    {fullName: "Ice Archon", quality: "Epic", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Ring", equip2: "Sword Knot", equip3: "Ring", cooldowns: "FIXME"},
+    {fullName: "Ice Sprite", quality: "Uncommon", role: "Controller", rune1: "Offense", rune2: "Defense", rune3: "Offense", equip1: "Ring", equip2: "Icon", equip3: "Neck", cooldowns: "4 1.5"},
+    {fullName: "Icosahedron Ioun Stone", quality: "Epic", role: "Augment", rune1: "Offense", rune2: "Offense", rune3: "Defense", equip1: "Ring", equip2: "Neck", equip3: "Ring", cooldowns: ""},
+    {fullName: "Intellect Devourer", quality: "Uncommon", role: "Striker", rune1: "Defense", rune2: "Defense", rune3: "Defense", equip1: "Neck", equip2: "Waist", equip3: "Waist", cooldowns: "2 10"},
+    {fullName: "Ioun Stone of Allure", quality: "Rare", role: "Augment", rune1: "Offense", rune2: "Offense", rune3: "Defense", equip1: "Ring", equip2: "Neck", equip3: "Icon", cooldowns: ""},
+    {fullName: "Ioun Stone of Might", quality: "Uncommon", role: "Augment", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Ring", equip2: "Waist", equip3: "Ring", cooldowns: ""},
+    {fullName: "Ioun Stone of Radiance", quality: "Uncommon", role: "Augment", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Ring", equip2: "Waist", equip3: "Ring", cooldowns: ""},
+    {fullName: "Iron Golem", quality: "Epic", role: "Defender", rune1: "Defense", rune2: "Defense", rune3: "Offense", equip1: "Waist", equip2: "Neck", equip3: "Waist", cooldowns: "6 4"},
+    {fullName: "Jagged Dancing Blade", quality: "Rare", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Sword Knot", equip2: "Sword Knot", equip3: "Sword Knot", cooldowns: "3.5 8"},
+    {fullName: "Kenku Archer", quality: "Uncommon", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Waist", equip2: "Waist", equip3: "Neck", cooldowns: "10 2"},
+    {fullName: "Laughing Skull", quality: "Epic", role: "Defender", rune1: "Defense", rune2: "Offense", rune3: "Defense", equip1: "Ring", equip2: "Ring", equip3: "Neck", cooldowns: "6 2"},
+    {fullName: "Leprechaun", quality: "Rare", role: "Controller", rune1: "Offense", rune2: "Defense", rune3: "Defense", equip1: "Waist", equip2: "Ring", equip3: "Ring", cooldowns: "2 12"},
+    {fullName: "Lightfoot Thief", quality: "Rare", role: "Striker", rune1: "Offense", rune2: "Defense", rune3: "Offense", equip1: "Neck", equip2: "Sword Knot", equip3: "Neck", cooldowns: "20 2"},
+    {fullName: "Lillend", quality: "Epic", role: "Leader", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Ring", equip2: "Ring", equip3: "Ring", cooldowns: "7 2"},
+    {fullName: "Lizardfolk Shaman", quality: "Uncommon", role: "Leader", rune1: "Defense", rune2: "Defense", rune3: "Defense", equip1: "Icon", equip2: "Neck", equip3: "Neck", cooldowns: "15 3"},
+    {fullName: "Makos", quality: "Epic", role: "Striker", rune1: "Defense", rune2: "Offense", rune3: "Offense", equip1: "Waist", equip2: "Talisman", equip3: "Talisman", cooldowns: "FIXME"},
+    {fullName: "Man at Arms", quality: "Common", role: "Defender", rune1: "Offense", rune2: "Defense", rune3: "Defense", equip1: "Waist", equip2: "Sword Knot", equip3: "Waist", cooldowns: "2 8"},
+    {fullName: "Mercenary", quality: "Uncommon", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Ring", equip2: "Ring", equip3: "Waist", cooldowns: "20 2"},
+    {fullName: "Moonshae Druid", quality: "Uncommon", role: "Controller", rune1: "Defense", rune2: "Offense", rune3: "Offense", equip1: "Ring", equip2: "Waist", equip3: "Neck", cooldowns: "8 1.5"},
+    {fullName: "Mystagogue", quality: "Uncommon", role: "Controller", rune1: "Offense", rune2: "Defense", rune3: "Offense", equip1: "Talisman", equip2: "Ring", equip3: "Talisman", cooldowns: "1 12"},
+    {fullName: "Mystic Phoera", quality: "Epic", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Ring", equip2: "Talisman", equip3: "Icon", cooldowns: "12 2"},
+    {fullName: "Neverember Guard", quality: "Rare", role: "Defender", rune1: "Defense", rune2: "Defense", rune3: "Defense", equip1: "Waist", equip2: "Waist", equip3: "Sword Knot", cooldowns: "3 1.2"},
+    {fullName: "Neverember Guard Archer", quality: "Uncommon", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Waist", equip2: "Waist", equip3: "Neck", cooldowns: "8 1.5"},
+    {fullName: "Northern Trapper", quality: "Common", role: "Controller", rune1: "Offense", rune2: "Defense", rune3: "Offense", equip1: "Neck", equip2: "Waist", equip3: "Neck", cooldowns: "FIXME"},
+    {fullName: "Owl", quality: "Epic", role: "Striker", rune1: "Defense", rune2: "Defense", rune3: "Offense", equip1: "Ring", equip2: "Neck", equip3: "Ring", cooldowns: "3.5 5 4"},
+    {fullName: "Owlbear Cub", quality: "Epic", role: "Augment", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Talisman", equip2: "Ring", equip3: "Ring", cooldowns: ""},
+    {fullName: "Panther", quality: "Epic", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Defense", equip1: "Ring", equip2: "Neck", equip3: "Talisman", cooldowns: "1 5"},
+    {fullName: "Paranoid Delusion", quality: "Epic", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Icon", equip2: "Talisman", equip3: "Sword Knot", cooldowns: "0 12"},
+    {fullName: "Pewter Golem", quality: "Rare", role: "Defender", rune1: "Defense", rune2: "Defense", rune3: "Defense", equip1: "Waist", equip2: "Neck", equip3: "Waist", cooldowns: "15 1"},
+    {fullName: "Phase Spider", quality: "Rare", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Ring", equip2: "Waist", equip3: "Neck", cooldowns: "3 7.5"},
+    {fullName: "Phoera", quality: "Epic", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Ring", equip2: "Talisman", equip3: "Icon", cooldowns: "12 2"},
+    {fullName: "Pig", quality: "Uncommon", role: "Controller", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Neck", equip2: "Waist", equip3: "Neck", cooldowns: "1 10"},
+    {fullName: "Polar Bear Cub", quality: "Epic", role: "Augment", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Icon", equip2: "Waist", equip3: "Neck", cooldowns: ""},
+    {fullName: "Portal Hound", quality: "Uncommon", role: "Defender", rune1: "Defense", rune2: "Defense", rune3: "Defense", equip1: "Neck", equip2: "Ring", equip3: "Waist", cooldowns: "1.5 5"},
+    {fullName: "Priestess of Sehanine Moonbow", quality: "Rare", role: "Leader", rune1: "Defense", rune2: "Defense", rune3: "Defense", equip1: "Neck", equip2: "Ring", equip3: "Waist", cooldowns: "6 10"},
+    {fullName: "Priestess of Sune", quality: "Rare", role: "Leader", rune1: "Defense", rune2: "Defense", rune3: "Defense", equip1: "Neck", equip2: "Ring", equip3: "Ring", cooldowns: "10 15"},
+    {fullName: "Pseudodragon", quality: "Epic", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Ring", equip2: "Neck", equip3: "Ring", cooldowns: "2 8"},
+    {fullName: "Quasit", quality: "Rare", role: "Augment", rune1: "Defense", rune2: "Offense", rune3: "Defense", equip1: "Ring", equip2: "Talisman", equip3: "Waist", cooldowns: ""},
+    {fullName: "Quickling", quality: "Uncommon", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Defense", equip1: "Neck", equip2: "Neck", equip3: "Waist", cooldowns: "5 8"},
+    {fullName: "Rebel Mercenary", quality: "Uncommon", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Waist", equip2: "Neck", equip3: "Sword Knot", cooldowns: "2"},
+    {fullName: "Redcap Powrie", quality: "Epic", role: "Striker", rune1: "Offense", rune2: "Defense", rune3: "Offense", equip1: "Waist", equip2: "Ring", equip3: "Neck", cooldowns: "8 1.5"},
+    {fullName: "Red Dragon Ioun Stone", quality: "Rare", role: "Augment", rune1: "Offense", rune2: "Offense", rune3: "Defense", equip1: "Ring", equip2: "Neck", equip3: "Icon", cooldowns: ""},
+    {fullName: "Red Slaad", quality: "Rare", role: "Defender", rune1: "Defense", rune2: "Defense", rune3: "Defense", equip1: "Waist", equip2: "Neck", equip3: "Waist", cooldowns: "9 3"},
+    {fullName: "Renegade Evoker", quality: "Uncommon", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Neck", equip2: "Ring", equip3: "Ring", cooldowns: "9 1.5"},
+    {fullName: "Renegade Illusionist", quality: "Uncommon", role: "Controller", rune1: "Defense", rune2: "Offense", rune3: "Offense", equip1: "Neck", equip2: "Ring", equip3: "Ring", cooldowns: "8 1"},
+    {fullName: "Repentant Dragon Cultist", quality: "Uncommon", role: "Defender", rune1: "Defense", rune2: "Offense", rune3: "Defense", equip1: "Waist", equip2: "Neck", equip3: "Waist", cooldowns: "1 20"},
+    {fullName: "Rimefire Golem", quality: "Uncommon", role: "Defender", rune1: "Defense", rune2: "Defense", rune3: "Defense", equip1: "Waist", equip2: "Neck", equip3: "Waist", cooldowns: "3 6"},
+    {fullName: "Rust Monster", quality: "Epic", role: "Controller", rune1: "Offense", rune2: "Defense", rune3: "Defense", equip1: "Waist", equip2: "Waist", equip3: "Waist", cooldowns: "3 8"},
+    {fullName: "Sellsword", quality: "Common", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Waist", equip2: "Neck", equip3: "Sword Knot", cooldowns: "2"},
+    {fullName: "Sergeant Knox", quality: "Epic", role: "Defender", rune1: "Defense", rune2: "Defense", rune3: "Offense", equip1: "Waist", equip2: "Sword Knot", equip3: "Sword Knot", cooldowns: "FIXME"},
+    {fullName: "Shadow Demon", quality: "Epic", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Waist", equip2: "Neck", equip3: "Sword Knot", cooldowns: "0 10"},
+    {fullName: "Shieldmaiden", quality: "Common", role: "Defender", rune1: "Defense", rune2: "Defense", rune3: "Defense", equip1: "Waist", equip2: "Ring", equip3: "Ring", cooldowns: "2 8"},
+    {fullName: "Siege Master", quality: "Rare", role: "Defender", rune1: "Defense", rune2: "Defense", rune3: "Offense", equip1: "Waist", equip2: "Ring", equip3: "Neck", cooldowns: "30 10"},
+    {fullName: "Silver-Scaled Cleric Disciple", quality: "Uncommon", role: "Leader", rune1: "Defense", rune2: "Defense", rune3: "Defense", equip1: "Icon", equip2: "Neck", equip3: "Ring", cooldowns: "30 6"},
+    {fullName: "Skeletal Dog", quality: "Common", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Defense", equip1: "Neck", equip2: "Neck", equip3: "Neck", cooldowns: "2 9"},
+    {fullName: "Skeleton", quality: "Uncommon", role: "Striker", rune1: "Offense", rune2: "Defense", rune3: "Defense", equip1: "Neck", equip2: "Waist", equip3: "Icon", cooldowns: "1.5 8"},
+    {fullName: "Slyblade Kobold", quality: "Rare", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Neck", equip2: "Sword Knot", equip3: "Ring", cooldowns: "10 1.5"},
+    {fullName: "Snow Leopard", quality: "Uncommon", role: "Striker", rune1: "Defense", rune2: "Offense", rune3: "Offense", equip1: "Ring", equip2: "Waist", equip3: "Neck", cooldowns: "FIXME"},
+    {fullName: "Snowy Fawn", quality: "Uncommon", role: "Leader", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Neck", equip2: "Ring", equip3: "Ring", cooldowns: "10 35"},
+    {fullName: "Sprite", quality: "Epic", role: "Controller", rune1: "Offense", rune2: "Defense", rune3: "Offense", equip1: "Ring", equip2: "Icon", equip3: "Neck", cooldowns: "4 1.5"},
+    {fullName: "Staldorf", quality: "Uncommon", role: "Defender", rune1: "Defense", rune2: "Defense", rune3: "Offense", equip1: "Grimoire", equip2: "Waist", equip3: "Ring", cooldowns: "1 10"},
+    {fullName: "Storm Rider", quality: "Uncommon", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Neck", equip2: "Ring", equip3: "Waist", cooldowns: "8 1.5"},
+    {fullName: "Swashbuckler", quality: "Uncommon", role: "Striker", rune1: "Defense", rune2: "Offense", rune3: "Offense", equip1: "Neck", equip2: "Waist", equip3: "Sword Knot", cooldowns: "8 2"},
+    {fullName: "Sylph", quality: "Epic", role: "Controller", rune1: "Offense", rune2: "Offense", rune3: "Defense", equip1: "Ring", equip2: "Ring", equip3: "Waist", cooldowns: "1.5 10"},
+    {fullName: "Tomb Spider", quality: "Rare", role: "Controller", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Ring", equip2: "Waist", equip3: "Neck", cooldowns: "3 3"},
+    {fullName: "Traveling Entertainer", quality: "Uncommon", role: "Striker", rune1: "Offense", rune2: "Defense", rune3: "Offense", equip1: "Ring", equip2: "Neck", equip3: "Waist", cooldowns: "5 8"},
+    {fullName: "Vicious Dire Wolf", quality: "Epic", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Neck", equip2: "Neck", equip3: "Waist", cooldowns: "5 8"},
+    {fullName: "Volcanic Galeb Duhr", quality: "Epic", role: "Defender", rune1: "Defense", rune2: "Defense", rune3: "Offense", equip1: "Waist", equip2: "Neck", equip3: "Neck", cooldowns: "12 3"},
+    {fullName: "Wandering Scarecrow", quality: "Rare", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Defense", equip1: "Ring", equip2: "Waist", equip3: "Neck", cooldowns: "2 2"},
+    {fullName: "War Dog", quality: "Rare", role: "Defender", rune1: "Defense", rune2: "Defense", rune3: "Offense", equip1: "Neck", equip2: "Neck", equip3: "Ring", cooldowns: "2 9"},
+    {fullName: "Water Archon", quality: "Epic", role: "Controller", rune1: "Offense", rune2: "Defense", rune3: "Offense", equip1: "Neck", equip2: "Waist", equip3: "Ring", cooldowns: "10 2"},
+    {fullName: "Watler", quality: "Epic", role: "Augment", rune1: "Offense", rune2: "Defense", rune3: "Offense", equip1: "Grimoire", equip2: "Waist", equip3: "Ring", cooldowns: ""},
+    {fullName: "Wayward Wizard", quality: "Common", role: "Controller", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Talisman", equip2: "Ring", equip3: "Talisman", cooldowns: "1 12"},
+    {fullName: "Wererat Thief", quality: "Rare", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Defense", equip1: "Neck", equip2: "Neck", equip3: "Sword Knot", cooldowns: "8 3"},
+    {fullName: "Wild Hunt Rider", quality: "Uncommon", role: "Defender", rune1: "Offense", rune2: "Defense", rune3: "Defense", equip1: "Neck", equip2: "Waist", equip3: "Sword Knot", cooldowns: "8 3"},
+    {fullName: "Will-O'-Wisp", quality: "Epic", role: "Controller", rune1: "Defense", rune2: "Offense", rune3: "Offense", equip1: "Ring", equip2: "Ring", equip3: "Ring", cooldowns: "6 2"},
+    {fullName: "Wolf", quality: "Uncommon", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Defense", equip1: "Neck", equip2: "Ring", equip3: "Waist", cooldowns: "2 20"},
+    {fullName: "Xuna", quality: "Epic", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Waist", equip2: "Neck", equip3: "Ring", cooldowns: "FIXME"},
+    {fullName: "Young Yeti", quality: "Uncommon", role: "Defender", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Neck", equip2: "Waist", equip3: "Neck", cooldowns: "0 10"},
+    {fullName: "Zhentarim Warlock", quality: "Rare", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Defense", equip1: "Talisman", equip2: "Ring", equip3: "Talisman", cooldowns: "0 10"}
+];
+
+function calcScore(companion) {
+    "use strict";
+    var role = weights[companion.role];
+    var quality = weights[companion.quality];
+    var rune1 = weights[companion.rune1];
+    var rune2 = weights[companion.rune2];
+    var rune3 = weights[companion.rune3];
+    var equip1 = weights[companion.equip1];
+    var equip2 = weights[companion.equip2];
+    var equip3 = weights[companion.equip3];
+    if (role < 0 || quality < 0 || rune1 < 0 || rune2 < 0 || rune3 < 0 || equip1 < 0 || equip2 < 0 || equip3 < 0) {
+        return -1;
+    }
+    return role + quality + rune1 + rune2 + rune3 + equip1 + equip2 + equip3;
+}
+
+function calcSpeed(cooldowns) {
+    "use strict";
+    if (cooldowns[0] === "" || cooldowns[0] === "FIXME") {
+        return 0;
+    }
+    var i;
+    var sum = 0;
+    for (i = 0; i < cooldowns.length; i += 1) {
+        if (cooldowns[i] === "0") {
+            sum += 1;
+        } else {
+            sum += 1 / cooldowns[i];
+        }
+    }
+    return sum;
+}
+
+function makeLink(name) {
+    "use strict";
+    return '<a href="http://neverwinter.gamepedia.com/' + name.replace(/\ /g, "_") + '">' + name + "</a>";
+}
+
+function addRow(table, companion) {
+    "use strict";
+    var row = table.insertRow(table.rows.length);
+    var cell = row.insertCell();
+    cell.textContent = companion.score;
+    cell.className = "number";
+    cell = row.insertCell();
+    cell.textContent = companion.speed.toFixed(3);
+    cell.className = "number";
+    cell = row.insertCell();
+    cell.innerHTML = makeLink(companion.fullName);
+    cell.className = companion.quality;
+    cell = row.insertCell();
+    cell.textContent = companion.role;
+    cell = row.insertCell();
+    cell.textContent = companion.rune1;
+    cell = row.insertCell();
+    cell.textContent = companion.rune2;
+    cell = row.insertCell();
+    cell.textContent = companion.rune3;
+    cell = row.insertCell();
+    cell.textContent = companion.equip1;
+    cell = row.insertCell();
+    cell.textContent = companion.equip2;
+    cell = row.insertCell();
+    cell.textContent = companion.equip3;
+    cell = row.insertCell();
+    cell.textContent = companion.cooldowns;
+}
+
+function update() {
+    "use strict";
+    var table = document.getElementById("table");
+    while (table.rows.length > 1) {
+        table.deleteRow(-1);
+    }
+    var keys = Object.keys(weights);
+    var i;
+    var option;
+    var int;
+    var query = "";
+    for (i = 0; i < keys.length; i += 1) {
+        option = document.getElementById(keys[i].replace(/\ /g, "_"));
+        int = parseInt(option.value);
+        if (!isNaN(int)) {
+            weights[keys[i]] = Math.max(int, -1);
+        }
+        option.value = weights[keys[i]];
+        query += "," + weights[keys[i]];
+    }
+    for (i = 0; i < companions.length; i += 1) {
+        companions[i].score = calcScore(companions[i]);
+    }
+    var sorted;
+    if (document.getElementById("select").value === "speed,score") {
+        sorted = companions.sort(function (a, b) {
+            if (b.speed === a.speed) {
+                return b.score - a.score;
+            }
+            return b.speed - a.speed;
+        });
+    } else {
+        sorted = companions.sort(function (a, b) {
+            if (b.score === a.score) {
+                return b.speed - a.speed;
+            }
+            return b.score - a.score;
+        });
+    }
+    for (i = 0; i < sorted.length; i += 1) {
+        if (sorted[i].score >= 0) {
+            addRow(table, sorted[i]);
+        }
+    }
+    history.replaceState(null, null, "?" + query.slice(1));
+}
+
+function initialize() {
+    "use strict";
+    var i;
+    for (i = 0; i < companions.length; i += 1) {
+        companions[i].cooldowns = companions[i].cooldowns.split(" ");
+        companions[i].speed = calcSpeed(companions[i].cooldowns);
+        companions[i].cooldowns = companions[i].cooldowns.join(", ");
+    }
+    var query = location.search.slice(1).split(",");
+    var keys = Object.keys(weights);
+    for (i = 0; i < keys.length; i += 1) {
+        query[i] = parseInt(query[i]);
+        if (!isNaN(query[i])) {
+            weights[keys[i]] = Math.max(query[i], -1);
+        }
+    }
+    update();
+}
+
+initialize();
+</script>
+</body>
+</html>
