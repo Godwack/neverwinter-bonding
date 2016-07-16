@@ -205,6 +205,7 @@ var companions = [
     {fullName: "Redcap Powrie", quality: "Epic", role: "Striker", rune1: "Offense", rune2: "Defense", rune3: "Offense", equip1: "Waist", equip2: "Ring", equip3: "Neck", cooldowns: "8 1.5"},
     {fullName: "Red Dragon Ioun Stone", quality: "Rare", role: "Augment", rune1: "Offense", rune2: "Offense", rune3: "Defense", equip1: "Ring", equip2: "Neck", equip3: "Icon", cooldowns: ""},
     {fullName: "Red Slaad", quality: "Rare", role: "Defender", rune1: "Defense", rune2: "Defense", rune3: "Defense", equip1: "Waist", equip2: "Neck", equip3: "Waist", cooldowns: "9 3"},
+    {fullName: "Remorhaz", quality: "Epic", role: "Striker", rune1: "Offense", rune2: "Defense", rune3: "Defense", equip1: "Neck", equip2: "Waist", equip3: "Talisman", cooldowns: "10 2"},
     {fullName: "Renegade Evoker", quality: "Uncommon", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Neck", equip2: "Ring", equip3: "Ring", cooldowns: "9 1.5"},
     {fullName: "Renegade Illusionist", quality: "Uncommon", role: "Controller", rune1: "Defense", rune2: "Offense", rune3: "Offense", equip1: "Neck", equip2: "Ring", equip3: "Ring", cooldowns: "8 1"},
     {fullName: "Repentant Dragon Cultist", quality: "Uncommon", role: "Defender", rune1: "Defense", rune2: "Offense", rune3: "Defense", equip1: "Waist", equip2: "Neck", equip3: "Waist", cooldowns: "1 20"},
@@ -283,7 +284,7 @@ function calcSpeed(cooldowns) {
 
 function makeLink(name) {
     "use strict";
-    return '<a href="http://neverwinter.gamepedia.com/' + name.replace(/\ /g, "_") + '">' + name + "</a>";
+    return "<a href=\"http://neverwinter.gamepedia.com/" + name.replace(/\ /g, "_") + "\">" + name + "</a>";
 }
 
 function addRow(table, companion) {
