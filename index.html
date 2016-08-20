@@ -282,11 +282,6 @@ function calcSpeed(cooldowns) {
     return sum;
 }
 
-function makeLink(name) {
-    "use strict";
-    return "<a href=\"http://neverwinter.gamepedia.com/" + name.replace(/\ /g, "_") + "\">" + name + "</a>";
-}
-
 function addRow(table, companion) {
     "use strict";
     var row = table.insertRow(table.rows.length);
@@ -297,7 +292,10 @@ function addRow(table, companion) {
     cell.textContent = companion.speed.toFixed(3);
     cell.className = "number";
     cell = row.insertCell();
-    cell.innerHTML = makeLink(companion.fullName);
+    var link = document.createElement("a");
+    link.setAttribute("href", "http://neverwinter.gamepedia.com/" + companion.fullName.replace(/\ /g, "_"));
+    link.textContent = companion.fullName;
+    cell.appendChild(link);
     cell.className = companion.quality;
     cell = row.insertCell();
     cell.textContent = companion.role;
