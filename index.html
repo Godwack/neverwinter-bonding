@@ -64,7 +64,8 @@ Sort: <select id="select" onchange="update()">
 </tr>
 </table>
 <script>
-var weights = {
+var weights = {};
+var defaults = {
     "Augment": 0,
     "Controller": 0,
     "Defender": 0,
@@ -293,7 +294,7 @@ function addRow(table, companion) {
     cell.className = "number";
     cell = row.insertCell();
     var link = document.createElement("a");
-    link.setAttribute("href", "http://neverwinter.gamepedia.com/" + companion.fullName.replace(/\ /g, "_"));
+    link.setAttribute("href", "http://neverwinter.gamepedia.com/" + companion.fullName.replace(/\s/g, "_"));
     link.textContent = companion.fullName;
     cell.appendChild(link);
     cell.className = companion.quality;
@@ -321,19 +322,23 @@ function update() {
     while (table.rows.length > 1) {
         table.deleteRow(-1);
     }
-    var keys = Object.keys(weights);
+    var keys = Object.keys(defaults);
     var i;
     var option;
     var int;
+    var customized = false;
     var query = "";
     for (i = 0; i < keys.length; i += 1) {
-        option = document.getElementById(keys[i].replace(/\ /g, "_"));
+        option = document.getElementById(keys[i].replace(/\s/g, "_"));
         int = parseInt(option.value);
         if (!isNaN(int)) {
             weights[keys[i]] = Math.max(int, -1);
         }
         option.value = weights[keys[i]];
         query += "," + weights[keys[i]];
+        if (weights[keys[i]] !== defaults[keys[i]]) {
+            customized = true;
+        }
     }
     for (i = 0; i < companions.length; i += 1) {
         companions[i].score = calcScore(companions[i]);
@@ -359,7 +364,11 @@ function update() {
             addRow(table, sorted[i]);
         }
     }
-    history.replaceState(null, null, "?" + query.slice(1));
+    if (customized === true) {
+        history.replaceState(null, null, "?" + query.slice(1));
+    } else {
+        history.replaceState(null, null, location.protocol + "//" + location.host + location.pathname);
+    }
 }
 
 function initialize() {
@@ -371,11 +380,13 @@ function initialize() {
         companions[i].cooldowns = companions[i].cooldowns.join(", ");
     }
     var query = location.search.slice(1).split(",");
-    var keys = Object.keys(weights);
+    var keys = Object.keys(defaults);
     for (i = 0; i < keys.length; i += 1) {
         query[i] = parseInt(query[i]);
         if (!isNaN(query[i])) {
             weights[keys[i]] = Math.max(query[i], -1);
+        } else {
+            weights[keys[i]] = defaults[keys[i]];
         }
     }
     update();
