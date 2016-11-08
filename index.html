@@ -147,7 +147,8 @@ var companions = [
     {fullName: "Flame Sprite", quality: "Uncommon", role: "Striker", rune1: "Offense", rune2: "Defense", rune3: "Offense", equip1: "Ring", equip2: "Icon", equip3: "Neck", cooldowns: "4 1.5"},
 //    {fullName: "Fox", quality: "Common", role: "Controller", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Neck", equip2: "Waist", equip3: "Neck", cooldowns: "FIXME"},
     {fullName: "Frost Mimic", quality: "Uncommon", role: "Defender", rune1: "Defense", rune2: "Defense", rune3: "Offense", equip1: "Ring", equip2: "Ring", equip3: "Neck", cooldowns: "2 10"},
-    {fullName: "Galeb Duhr", quality: "Epic", role: "Defender", rune1: "Defense", rune2: "Defense", rune3: "Defense", equip1: "Waist", equip2: "Ring", equip3: "Waist", cooldowns: "120 3"},
+    {fullName: "Frozen Galeb Duhr", quality: "Uncommon", role: "Defender", rune1: "Defense", rune2: "Defense", rune3: "Defense", equip1: "Waist", equip2: "Ring", equip3: "Waist", cooldowns: "12 3"},
+    {fullName: "Galeb Duhr", quality: "Epic", role: "Defender", rune1: "Defense", rune2: "Defense", rune3: "Defense", equip1: "Waist", equip2: "Ring", equip3: "Waist", cooldowns: "12 3"},
     {fullName: "Gelatinous Cube", quality: "Rare", role: "Augment", rune1: "Defense", rune2: "Offense", rune3: "Defense", equip1: "Waist", equip2: "Waist", equip3: "Waist", cooldowns: ""},
     {fullName: "Ghost", quality: "Rare", role: "Controller", rune1: "Offense", rune2: "Defense", rune3: "Defense", equip1: "Ring", equip2: "Ring", equip3: "Neck", cooldowns: "35 2"},
     {fullName: "Goat", quality: "Epic", role: "Augment", rune1: "Defense", rune2: "Defense", rune3: "Offense", equip1: "Ring", equip2: "Neck", equip3: "Waist", cooldowns: ""},
@@ -179,6 +180,7 @@ var companions = [
     {fullName: "Lizardfolk Shaman", quality: "Uncommon", role: "Leader", rune1: "Defense", rune2: "Defense", rune3: "Defense", equip1: "Icon", equip2: "Neck", equip3: "Neck", cooldowns: "15 3"},
     {fullName: "Makos", quality: "Epic", role: "Striker", rune1: "Defense", rune2: "Offense", rune3: "Offense", equip1: "Waist", equip2: "Talisman", equip3: "Talisman", cooldowns: "FIXME"},
     {fullName: "Man at Arms", quality: "Common", role: "Defender", rune1: "Offense", rune2: "Defense", rune3: "Defense", equip1: "Waist", equip2: "Sword Knot", equip3: "Waist", cooldowns: "2 8"},
+    {fullName: "Manticore", quality: "Epic", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Neck", equip2: "Waist", equip3: "Sword Knot", cooldowns: "0 15"},
     {fullName: "Mercenary", quality: "Uncommon", role: "Striker", rune1: "Offense", rune2: "Offense", rune3: "Offense", equip1: "Ring", equip2: "Ring", equip3: "Waist", cooldowns: "20 2"},
     {fullName: "Minstrel", quality: "Uncommon", role: "Leader", rune1: "Offense", rune2: "Defense", rune3: "Defense", equip1: "Waist", equip2: "Ring", equip3: "Neck", cooldowns: "15 6"},
     {fullName: "Moonshae Druid", quality: "Uncommon", role: "Controller", rune1: "Defense", rune2: "Offense", rune3: "Offense", equip1: "Ring", equip2: "Waist", equip3: "Neck", cooldowns: "8 1.5"},
@@ -272,9 +274,10 @@ function calcSpeed(cooldowns) {
     if (cooldowns[0] === "" || cooldowns[0] === "FIXME") {
         return 0;
     }
-    var i;
+    var i = cooldowns.length;
     var sum = 0;
-    for (i = 0; i < cooldowns.length; i += 1) {
+    while (i > 0) {
+        i -= 1;
         if (cooldowns[i] === "0") {
             sum += 1;
         } else {
@@ -324,12 +327,12 @@ function update() {
         table.deleteRow(-1);
     }
     var keys = Object.keys(defaults);
-    var i;
+    var i = 0;
     var option;
     var int;
     var customized = false;
     var query = "";
-    for (i = 0; i < keys.length; i += 1) {
+    while (i < keys.length) {
         option = document.getElementById(keys[i].replace(/\s/g, "_"));
         int = parseInt(option.value);
         if (!isNaN(int)) {
@@ -340,8 +343,11 @@ function update() {
         if (weights[keys[i]] !== defaults[keys[i]]) {
             customized = true;
         }
+        i += 1;
     }
-    for (i = 0; i < companions.length; i += 1) {
+    i = companions.length;
+    while (i > 0) {
+        i -= 1;
         companions[i].score = calcScore(companions[i]);
     }
     var sorted;
@@ -360,10 +366,12 @@ function update() {
             return b.score - a.score;
         });
     }
-    for (i = 0; i < sorted.length; i += 1) {
+    i = 0;
+    while (i < sorted.length) {
         if (sorted[i].score >= 0) {
             addRow(table, sorted[i]);
         }
+        i += 1;
     }
     if (customized === true) {
         history.replaceState(null, null, "?" + query.slice(1));
@@ -374,15 +382,18 @@ function update() {
 
 function initialize() {
     "use strict";
-    var i;
-    for (i = 0; i < companions.length; i += 1) {
+    var i = companions.length;
+    while (i > 0) {
+        i -= 1;
         companions[i].cooldowns = companions[i].cooldowns.split(" ");
         companions[i].speed = calcSpeed(companions[i].cooldowns);
         companions[i].cooldowns = companions[i].cooldowns.join(", ");
     }
     var query = location.search.slice(1).split(",");
     var keys = Object.keys(defaults);
-    for (i = 0; i < keys.length; i += 1) {
+    i = keys.length;
+    while (i > 0) {
+        i -= 1;
         query[i] = parseInt(query[i]);
         if (!isNaN(query[i])) {
             weights[keys[i]] = Math.max(query[i], -1);
